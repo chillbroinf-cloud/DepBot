@@ -1,6 +1,7 @@
 import asyncio
 import random
 import logging
+import threading
 from datetime import datetime, timedelta
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command
@@ -13,11 +14,59 @@ import os
 import json
 import re
 import atexit
+from flask import Flask
 
 load_dotenv()
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 
 logging.basicConfig(filename='bot.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+bot = Bot(token=BOT_TOKEN)
+storage = MemoryStorage()
+dp = Dispatcher(storage=storage)
+
+app = Flask(__name__)
+
+@app.route('/')
+def dashboard():
+    global balances, stats, paused, pending_duels
+    user_count = len(balances)
+    active_duels = len([d for d in pending_duels.values() if isinstance(d, dict) and 'scores' in d])
+    rtp = (stats['total_wins'] / stats['total_bets'] * 100) if stats['total_bets'] > 0 else 0
+    return f"""
+    <html>
+    <head><title>Dep-Kazino Dashboard</title></head>
+    <body>
+        <h1>🚀 Bot Status</h1>
+        <p>👥 Active Users: {user_count}</p>
+        <p>💰 Total Bets: ${stats['total_bets']:,}</p>
+        <p>🏆 Total Wins: ${stats['total_wins']:,}</p>
+        <p>📈 RTP: {rtp:.1f}%</p>
+        <p>⚔️ Active Duels: {active_duels}</p>
+        <p>⏸️ Paused: {'Yes' if paused else 'No'}</p>
+        <hr>
+        <h2>Recent Logs</h2>
+        <pre>{get_recent_logs()}</pre>
+        <p><small>Updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</small></p>
+    </body>
+    </html>
+    """
+
+def get_recent_logs():
+    try:
+        with open('bot.log', 'r') as f:
+            lines = f.readlines()
+            return ''.join(lines[-20:])  # Last 20 lines
+    except:
+        return "No logs available."
+
+@app.route('/logs')
+def full_logs():
+    try:
+        with open('bot.log', 'r') as f:
+            return f'<pre>{f.read()}</pre>'
+    except:
+        return 'Logs not found.'
 
 bot = Bot(token=BOT_TOKEN)
 storage = MemoryStorage()
@@ -2268,6 +2317,14 @@ async def poker_menu_callback(callback: CallbackQuery, state: FSMContext):
 
 
 async def main():
+    def run_dashboard():
+        app.run(host='0.0.0.0', port=5000, debug=False)
+    
+    dashboard_thread = threading.Thread(target=run_dashboard)
+    dashboard_thread.daemon = True
+    dashboard_thread.start()
+    logging.info('Dashboard started at http://localhost:5000')
+    
     try:
         # Periodic save every 30s
         async def periodic_save():
