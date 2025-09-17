@@ -1,0 +1,1 @@
+print('[VS Code Error Context] Failed to load buffer script: Error: ENOENT: no such file or directory, open '/home/andrey/.vscode-oss/extensions/dant2021.error-context-collector-0.1.7-universal/src/languages/buffers/python-error-buffer.py'')

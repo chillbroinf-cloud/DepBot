@@ -1,0 +1,36 @@
+{
+  "balances": {
+    "6410398862": 28332,
+    "8294054433": 9950,
+    "5660993057": 9748
+  },
+  "user_info": {
+    "6410398862": {
+      "name": "rmxinfks",
+      "registered": true,
+      "balance": 28332
+    },
+    "8294054433": {
+      "name": "",
+      "registered": true,
+      "balance": 9950
+    },
+    "5660993057": {
+      "name": "SageWanderer",
+      "registered": true,
+      "balance": 9748
+    }
+  },
+  "banned_users": [],
+  "pending_duels": {},
+  "random_queue": [],
+  "last_daily": {
+    "6410398862": "2025-09-17T17:59:52.796515"
+  },
+  "stats": {
+    "total_bets": 9594,
+    "total_wins": 27224
+  },
+  "feedbacks": [],
+  "paused": false
+}
